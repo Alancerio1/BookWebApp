@@ -34,32 +34,32 @@ public class Author {
     
     
 
-    public int getAuthorId() {
+    public final int getAuthorId() {
         return authorId;
     }
 
-    public void setAuthorId(int authorId) {
+    public final void setAuthorId(int authorId) {
         this.authorId = authorId;
     }
 
-    public String getAuthorName() {
+    public final String getAuthorName() {
         return authorName;
     }
 
-    public void setAuthorName(String authorName) {
+    public final void setAuthorName(String authorName) {
         this.authorName = authorName;
     }
 
-    public Date getDateAdded() {
+    public final Date getDateAdded() {
         return dateAdded;
     }
 
-    public void setDateAdded(Date dateAdded) {
+    public final void setDateAdded(Date dateAdded) {
         this.dateAdded = dateAdded;
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         int hash = 5;
         hash = 17 * hash + this.authorId;
         hash = 17 * hash + Objects.hashCode(this.authorName);
@@ -68,7 +68,7 @@ public class Author {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public final boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
@@ -92,7 +92,7 @@ public class Author {
     }
 
     @Override
-    public String toString() {
+    public final String toString() {
         return "AuthorService{" + "authorId=" + authorId + ", authorName=" + authorName + ", dateAdded=" + dateAdded + '}';
     }
     

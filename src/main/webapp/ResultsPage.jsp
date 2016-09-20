@@ -9,30 +9,26 @@
 <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!DOCTYPE html>
 
-      <%
-Object obj = request.getAttribute("authorList");
-if(obj == null){
-   response.sendRedirect("ResultsPage.jsp");
-}
 
-
-%>
 
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link href="bookCss.css" rel="stylesheet" type="text/css"/>
         <title>Authors</title>
     </head>
     <body>
         <h1>Authors</h1>
-  
 
+        <table>
+            <c:forEach var="item" items="${authorList}">
+                <tr>
+                    <td>${item.authorName}</td>
+                    <td>${item.authorId}</td>
+                    <td>${item.dateAddded}</td>
 
-<ul>
-        <c:forEach var="item" items="${authorList}">
-            <li>${item}</li>
-            
-        </c:forEach>
-        </ul>
+                </tr>
+            </c:forEach>
+        </table>
     </body>
 </html>

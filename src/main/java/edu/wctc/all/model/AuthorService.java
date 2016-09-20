@@ -18,16 +18,13 @@ public class AuthorService {
     private List<Author> authors;
 
     public AuthorService() {
-        fakeDatabase();
-    }
-
-    private void fakeDatabase() {
-        authors = Arrays.asList(
+         authors = Arrays.asList(
                 new Author(1, "John,Doe", new Date()),
                 new Author(2, "Jane,Doe", new Date()),
                 new Author(3, "Jack,Jack", new Date())
                 );
     }
+
     public List<Author> getAuthorList(){
         return authors;
     }
