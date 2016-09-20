@@ -40,7 +40,6 @@ public class AuthorController extends HttpServlet {
         
         AuthorService service = new AuthorService();
         
-        // String authors = String.valueOf(service.getAuthorList());
          List<Author> authorList = service.getAuthorList();
         request.setAttribute("Authors", authorList);
         

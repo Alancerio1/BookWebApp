@@ -14,21 +14,26 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" >
         <link href="bookCss.css" rel="stylesheet" type="text/css"/>
         <title>Authors</title>
     </head>
     <body>
-        <h1>Authors</h1>
+        <div class="container">
+            <h1>Authors</h1>
+            <center>
+            <table class="table-striped table-hover table-condensed">
+                <c:forEach var="item" items="${Authors}">
+                    <tr>
+                        <td>${item.authorName}</td>
+                        <td>${item.authorId}</td>
+                        <td>${item.dateAdded}</td>
 
-        <table>
-            <c:forEach var="item" items="${authorList}">
-                <tr>
-                    <td>${item.authorName}</td>
-                    <td>${item.authorId}</td>
-                    <td>${item.dateAddded}</td>
-
-                </tr>
-            </c:forEach>
-        </table>
+                    </tr>
+                </c:forEach>
+            </table>
+            </center>
+            <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        </div>
     </body>
 </html>

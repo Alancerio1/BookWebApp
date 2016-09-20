@@ -13,9 +13,9 @@ import java.util.Objects;
  * @author alancerio18
  */
 public class Author {
-    int authorId;
-    String authorName;
-    Date dateAdded;
+   private int authorId;
+   private String authorName;
+   private Date dateAdded;
 
     public Author() {
     }
