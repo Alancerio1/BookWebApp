@@ -6,10 +6,16 @@
 package edu.wctc.all.controller;
 
 import edu.wctc.all.model.Author;
+import edu.wctc.all.model.AuthorDao;
+import edu.wctc.all.model.AuthorDaoStrategy;
 import edu.wctc.all.model.AuthorService;
+import edu.wctc.all.model.MySqlDbStrategy;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.SQLException;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -34,11 +40,12 @@ public class AuthorController extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws ServletException, IOException, Exception {
         response.setContentType("text/html;charset=UTF-8");
         
-        
-        AuthorService service = new AuthorService();
+        AuthorDaoStrategy dao = new AuthorDao(new MySqlDbStrategy(),"com.mysql.jdbc.Driver",
+                                      "jdbc:mysql://localhost:3306/book?useSSL=false","root","admin");
+        AuthorService service = new AuthorService(dao);
         
          List<Author> authorList = service.getAuthorList();
         request.setAttribute("Authors", authorList);
@@ -59,8 +66,12 @@ public class AuthorController extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
+            throws ServletException, IOException{
+        try {
+            processRequest(request, response);
+        } catch (Exception ex) {
+            Logger.getLogger(AuthorController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     /**
@@ -74,7 +85,11 @@ public class AuthorController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        try {
+            processRequest(request, response);
+        } catch (Exception ex) {
+            Logger.getLogger(AuthorController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     /**

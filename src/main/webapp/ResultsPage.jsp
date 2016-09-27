@@ -25,6 +25,11 @@
             <table class="table-striped table-hover table-condensed">
                 <c:forEach var="item" items="${Authors}">
                     <tr>
+                        <th>Name</th>
+                        <th>Author ID</th>
+                        <th>Date Added</th>
+                    </tr>
+                    <tr>
                         <td>${item.authorName}</td>
                         <td>${item.authorId}</td>
                         <td>${item.dateAdded}</td>
