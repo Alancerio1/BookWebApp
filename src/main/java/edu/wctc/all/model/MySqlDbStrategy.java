@@ -52,22 +52,43 @@ public class MySqlDbStrategy implements DbStrategy {
         sql += " VALUES ";
     }
 
-    public void deleteRecord(String tableName,int primaryKey)
+    public void deleteRecord(String tableName, int primaryKey)
             throws SQLException {
 
         Statement deleteRecord = conn.createStatement();;
 
-        String deleteString = "DELETE FROM " + tableName + " WHERE author_id = " + primaryKey ;
+        String deleteString = "DELETE FROM " + tableName + " WHERE author_id = " + primaryKey;
 
-         deleteRecord.executeUpdate(deleteString);
-         
+        deleteRecord.executeUpdate(deleteString);
 
     }
 
-    
-    
-    
-    private PreparedStatement buildInsertStatement(Connection conn_loc, String tableName, List colDescriptors)
+    public  List<Map<String, Object>>  findById(String tableName, int primaryKey)
+            throws SQLException {
+
+        Statement findRecord = conn.createStatement();;
+        String findString = "Select author_id FROM " + tableName + " WHERE author_id = " + primaryKey;
+        findRecord.executeUpdate(findString);
+                ResultSet rs = findRecord.executeQuery(findString);
+
+         List<Map<String, Object>> records = new ArrayList<>();
+        ResultSetMetaData rsmd = rs.getMetaData();
+        int colCount = rsmd.getColumnCount();
+        while (rs.next()) {
+            Map<String, Object> record = new LinkedHashMap<>();
+            for (int i = 0; i < colCount; i++) {
+                String colName = rsmd.getColumnName(i + 1);
+                Object colData = rs.getObject(colName);
+                record.put(colName, colData);
+            }
+            records.add(record);
+
+        }
+        return records;
+
+    }
+
+private PreparedStatement buildInsertStatement(Connection conn_loc, String tableName, List colDescriptors)
             throws SQLException {
         StringBuffer sql = new StringBuffer("INSERT INTO ");
         (sql.append(tableName)).append(" (");
@@ -84,7 +105,7 @@ public class MySqlDbStrategy implements DbStrategy {
     }
 
     @Override
-    public List<Map<String, Object>> findAllRecords(String tableName, int maxRecords) throws SQLException {
+        public List<Map<String, Object>> findAllRecords(String tableName, int maxRecords) throws SQLException {
         String sql = "SELECT * FROM " + tableName + " LIMIT " + maxRecords;
         Statement stmt = conn.createStatement();
         ResultSet rs = stmt.executeQuery(sql);
@@ -108,10 +129,10 @@ public class MySqlDbStrategy implements DbStrategy {
         MySqlDbStrategy db = new MySqlDbStrategy();
         db.openConnection("com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/book?useSSL=false",
                 "root", "admin");
-          db.deleteRecord("author",3);
+         //find = db.findById("author",1);
         List<Map<String, Object>> records = db.findAllRecords("author", 500);
         
-        System.out.println(records);
+        System.out.println(db.findById("author", 1));
         db.closeConnection();
     }
 }
