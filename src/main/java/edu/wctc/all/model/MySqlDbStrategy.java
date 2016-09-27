@@ -52,15 +52,15 @@ public class MySqlDbStrategy implements DbStrategy {
         sql += " VALUES ";
     }
 
-    public void deleteRecord(String tableName, List<String> columnNames, List<Object> columnValues,
-            String whereField, Object whereValue, int PrimaryKey)
+    public void deleteRecord(String tableName,int primaryKey)
             throws SQLException {
 
         Statement deleteRecord = conn.createStatement();;
 
-        String deleteString = "DELETE FROM" + tableName + " WHERE author_id = 1 ";
+        String deleteString = "DELETE FROM " + tableName + " WHERE author_id = " + primaryKey ;
 
          deleteRecord.executeUpdate(deleteString);
+         
 
     }
 
@@ -106,11 +106,11 @@ public class MySqlDbStrategy implements DbStrategy {
 
     public static void main(String[] args) throws Exception {
         MySqlDbStrategy db = new MySqlDbStrategy();
-
         db.openConnection("com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/book?useSSL=false",
                 "root", "admin");
-
+          db.deleteRecord("author",3);
         List<Map<String, Object>> records = db.findAllRecords("author", 500);
+        
         System.out.println(records);
         db.closeConnection();
     }
