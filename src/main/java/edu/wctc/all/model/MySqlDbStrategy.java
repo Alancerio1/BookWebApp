@@ -63,15 +63,16 @@ public class MySqlDbStrategy implements DbStrategy {
 
     }
 
-    public  List<Map<String, Object>>  findById(String tableName, int primaryKey)
+    public List<Map<String, Object>> findById(String tableName, int primaryKey)
             throws SQLException {
 
         Statement findRecord = conn.createStatement();;
-        String findString = "Select author_id FROM " + tableName + " WHERE author_id = " + primaryKey;
-        findRecord.executeUpdate(findString);
-                ResultSet rs = findRecord.executeQuery(findString);
+        String findString = "Select * FROM " + tableName + " WHERE author_id = " + primaryKey;
+       // findRecord.executeUpdate(findString);
+        
+        ResultSet rs = findRecord.executeQuery(findString);
 
-         List<Map<String, Object>> records = new ArrayList<>();
+        List<Map<String, Object>> records = new ArrayList<>();
         ResultSetMetaData rsmd = rs.getMetaData();
         int colCount = rsmd.getColumnCount();
         while (rs.next()) {
@@ -88,7 +89,7 @@ public class MySqlDbStrategy implements DbStrategy {
 
     }
 
-private PreparedStatement buildInsertStatement(Connection conn_loc, String tableName, List colDescriptors)
+    private PreparedStatement buildInsertStatement(Connection conn_loc, String tableName, List colDescriptors)
             throws SQLException {
         StringBuffer sql = new StringBuffer("INSERT INTO ");
         (sql.append(tableName)).append(" (");
@@ -105,7 +106,7 @@ private PreparedStatement buildInsertStatement(Connection conn_loc, String table
     }
 
     @Override
-        public List<Map<String, Object>> findAllRecords(String tableName, int maxRecords) throws SQLException {
+    public List<Map<String, Object>> findAllRecords(String tableName, int maxRecords) throws SQLException {
         String sql = "SELECT * FROM " + tableName + " LIMIT " + maxRecords;
         Statement stmt = conn.createStatement();
         ResultSet rs = stmt.executeQuery(sql);
@@ -129,9 +130,9 @@ private PreparedStatement buildInsertStatement(Connection conn_loc, String table
         MySqlDbStrategy db = new MySqlDbStrategy();
         db.openConnection("com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/book?useSSL=false",
                 "root", "admin");
-         //find = db.findById("author",1);
+        //find = db.findById("author",1);
         List<Map<String, Object>> records = db.findAllRecords("author", 500);
-        
+
         System.out.println(db.findById("author", 1));
         db.closeConnection();
     }
