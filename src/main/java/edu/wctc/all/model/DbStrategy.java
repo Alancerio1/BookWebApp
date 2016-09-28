@@ -17,8 +17,14 @@ public interface DbStrategy {
 
     void closeConnection() throws SQLException;
 
-    List<Map<String,Object>> findAllRecords(String tableName, int maxRecords) throws SQLException;
+    List<Map<String, Object>> findAllRecords(String tableName, int maxRecords) throws SQLException;
 
     void openConnection(String driverClass, String url, String userName, String password) throws ClassNotFoundException, SQLException;
-    
+
+    void deleteById(String author, String author_id, Object primaryKeyValue) throws Exception;
+
+    void createRecord(String tableName, List<String> columnNames, List<Object> columnValues) throws Exception;
+
+    List<Map<String, Object>> findById(String tableName, String columnName, Object primaryKey) throws SQLException;
+
 }

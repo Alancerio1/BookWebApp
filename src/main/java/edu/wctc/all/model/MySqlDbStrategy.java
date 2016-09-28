@@ -13,6 +13,8 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -42,7 +44,8 @@ public class MySqlDbStrategy implements DbStrategy {
         conn.close();
     }
 
-    public void createRecord(String tableName, List<String> columnNames, List<Object> columnValues) {
+    @Override
+    public final void createRecord(String tableName, List<String> columnNames, List<Object> columnValues) throws Exception {
         String sql = "INSERT INTO " + tableName;
         StringJoiner sj = new StringJoiner(", ", " (", ")");
         for (String columnName : columnNames) {
@@ -50,26 +53,51 @@ public class MySqlDbStrategy implements DbStrategy {
         }
         sql += sj.toString();
         sql += " VALUES ";
+        sj = new StringJoiner(", ", " (", ")");
+        for (Object columnValue : columnValues) {
+            sj.add("?");
+        }
+        sql += sj.toString();
+        PreparedStatement ps = conn.prepareStatement(sql);
+        for (int i = 0; i < columnValues.size(); i++) {
+            ps.setObject(i + 1, columnValues.get(i));
+        }
+        ps.executeUpdate();
     }
 
-    public void deleteRecord(String tableName, int primaryKey)
-            throws SQLException {
-
-        Statement deleteRecord = conn.createStatement();;
-
-        String deleteString = "DELETE FROM " + tableName + " WHERE author_id = " + primaryKey;
-
-        deleteRecord.executeUpdate(deleteString);
-
+    private PreparedStatement buildDeleteStatement(String tableName, String primaryKeyFieldName, Object primaryKeyValue) throws Exception {
+        String sql = "DELETE FROM " + tableName + " WHERE " + primaryKeyFieldName + "=?";
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        stmt.setObject(1, primaryKeyValue);
+        return stmt;
     }
 
-    public List<Map<String, Object>> findById(String tableName, int primaryKey)
+    @Override
+    public final void deleteById(String tableName, String primaryKeyFieldName, Object primaryKeyValue) throws Exception {
+        PreparedStatement stmt = buildDeleteStatement(tableName, primaryKeyFieldName, primaryKeyValue);
+        stmt.executeUpdate();
+
+    }
+    //the delete statement that I made without a prepared statmenet
+//    public void deleteRecord(String tableName, int primaryKey)
+//            throws SQLException {
+//
+//        Statement deleteRecord = conn.createStatement();
+//
+//        String deleteString = "DELETE FROM " + tableName + " WHERE author_id = " + primaryKey;
+//
+//        deleteRecord.executeUpdate(deleteString);
+//
+//    }
+
+    @Override
+    public final List<Map<String, Object>> findById(String tableName, String columnName, Object primaryKey)
             throws SQLException {
 
         Statement findRecord = conn.createStatement();;
-        String findString = "Select * FROM " + tableName + " WHERE author_id = " + primaryKey;
-       // findRecord.executeUpdate(findString);
-        
+        String findString = "Select * FROM " + tableName + " WHERE" + columnName + "= " + primaryKey;
+        // findRecord.executeUpdate(findString);
+
         ResultSet rs = findRecord.executeQuery(findString);
 
         List<Map<String, Object>> records = new ArrayList<>();
@@ -87,22 +115,6 @@ public class MySqlDbStrategy implements DbStrategy {
         }
         return records;
 
-    }
-
-    private PreparedStatement buildInsertStatement(Connection conn_loc, String tableName, List colDescriptors)
-            throws SQLException {
-        StringBuffer sql = new StringBuffer("INSERT INTO ");
-        (sql.append(tableName)).append(" (");
-        final Iterator i = colDescriptors.iterator();
-        while (i.hasNext()) {
-            (sql.append((String) i.next())).append(", ");
-        }
-        sql = new StringBuffer((sql.toString()).substring(0, (sql.toString()).lastIndexOf(", ")) + ") VALUES (");
-        for (int j = 0; j < colDescriptors.size(); j++) {
-            sql.append("?, ");
-        }
-        final String finalSQL = (sql.toString()).substring(0, (sql.toString()).lastIndexOf(", ")) + ")";
-        return conn_loc.prepareStatement(finalSQL);
     }
 
     @Override
@@ -131,9 +143,13 @@ public class MySqlDbStrategy implements DbStrategy {
         db.openConnection("com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/book?useSSL=false",
                 "root", "admin");
         //find = db.findById("author",1);
-        List<Map<String, Object>> records = db.findAllRecords("author", 500);
-
-        System.out.println(db.findById("author", 1));
+        //List<Map<String, Object>> records = db.findAllRecords("author", 500);
+        List<String> colNames = Arrays.asList("author_name", "date_added");
+        List<Object> colValues = new ArrayList<>();
+        colValues.add("Jim Lombardo");
+        colValues.add(new Date());
+        db.createRecord("author", colNames, colValues);
         db.closeConnection();
     }
+
 }
