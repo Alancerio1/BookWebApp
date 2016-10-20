@@ -24,7 +24,14 @@ public interface DbStrategy {
     void deleteById(String author, String author_id, Object primaryKeyValue) throws Exception;
 
     void createRecord(String tableName, List<String> columnNames, List<Object> columnValues) throws Exception;
+  
+    //void createRecord(String name) throws Exception;
 
-    List<Map<String, Object>> findById(String tableName, String columnName, Object primaryKey) throws SQLException;
+
+    Map<String, Object> findById(String tableName, String columnName, Object primaryKey) throws SQLException;
+
+    void updateRecord(String tableName, List<String> columnNames, List<Object> columnValues,
+            String whereColumn, Object whereValue) throws Exception;
+
 
 }

@@ -9,10 +9,10 @@ and open the template in the editor.
 */
 
 h1{
-    color:blue;
+    color:black;
 }
 
 body{
     text-align:center;
-    background-color:yellow
+    background-color:green;
 }

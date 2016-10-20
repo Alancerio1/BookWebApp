@@ -5,6 +5,7 @@
  */
 package edu.wctc.all.model;
 
+import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -21,12 +22,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
+import javax.enterprise.context.Dependent;
 
 /**
  *
  * @author alancerio18
  */
-public class MySqlDbStrategy implements DbStrategy {
+@Dependent
+public class MySqlDbStrategy implements DbStrategy, Serializable {
 
     private Connection conn;
 
@@ -44,8 +47,49 @@ public class MySqlDbStrategy implements DbStrategy {
         conn.close();
     }
 
+    public void updateRecord(String tableName, List<String> columnNames, List<Object> columnValues,
+            String whereColumn, Object whereValue) throws Exception {
+        PreparedStatement ps = buildUpdateStatement(tableName, columnNames, columnValues, whereColumn, whereValue);
+
+        ps.executeUpdate();
+
+    }
+
+    private PreparedStatement buildUpdateStatement(String tableName, List<String> columnNames, List<Object> columnValues,
+            String whereColumn, Object whereValue) throws Exception {
+        String sql = "UPDATE " + tableName + " SET ";
+        StringJoiner sj = new StringJoiner("=?,", "", "=?");
+        for (String columnName : columnNames) {
+            sj.add(columnName);
+        }
+        sql += sj.toString();
+
+        sql += " WHERE " + whereColumn + "=?";
+//        System.out.println(sql);
+//        System.exit(0);
+        PreparedStatement ps = conn.prepareStatement(sql);
+
+        //inject values for column ?
+        for (int i = 0; i < columnValues.size(); i++) {
+            ps.setObject(i + 1, columnValues.get(i));
+        }
+
+        // inject value for where clause ?
+        ps.setObject(columnValues.size() + 1, whereValue);
+
+        return ps;
+
+    }
+
     @Override
-    public final void createRecord(String tableName, List<String> columnNames, List<Object> columnValues) throws Exception {
+    public void createRecord(String tableName, List<String> columnNames, List<Object> columnValues) throws Exception {
+
+        PreparedStatement ps = buildCreateStatement(tableName, columnNames, columnValues);
+
+        ps.executeUpdate();
+    }
+
+    private PreparedStatement buildCreateStatement(String tableName, List<String> columnNames, List<Object> columnValues) throws Exception {
         String sql = "INSERT INTO " + tableName;
         StringJoiner sj = new StringJoiner(", ", " (", ")");
         for (String columnName : columnNames) {
@@ -62,7 +106,9 @@ public class MySqlDbStrategy implements DbStrategy {
         for (int i = 0; i < columnValues.size(); i++) {
             ps.setObject(i + 1, columnValues.get(i));
         }
-        ps.executeUpdate();
+
+        return ps;
+
     }
 
     private PreparedStatement buildDeleteStatement(String tableName, String primaryKeyFieldName, Object primaryKeyValue) throws Exception {
@@ -73,7 +119,7 @@ public class MySqlDbStrategy implements DbStrategy {
     }
 
     @Override
-    public final void deleteById(String tableName, String primaryKeyFieldName, Object primaryKeyValue) throws Exception {
+    public void deleteById(String tableName, String primaryKeyFieldName, Object primaryKeyValue) throws Exception {
         PreparedStatement stmt = buildDeleteStatement(tableName, primaryKeyFieldName, primaryKeyValue);
         stmt.executeUpdate();
 
@@ -91,29 +137,38 @@ public class MySqlDbStrategy implements DbStrategy {
 //    }
 
     @Override
-    public final List<Map<String, Object>> findById(String tableName, String columnName, Object primaryKey)
-            throws SQLException {
+    public final Map<String, Object> findById(String tableName, String primaryKey,
+            Object primaryKeyValue) {
 
-        Statement findRecord = conn.createStatement();;
-        String findString = "Select * FROM " + tableName + " WHERE" + columnName + "= " + primaryKey;
-        // findRecord.executeUpdate(findString);
+        String sql = "SELECT * FROM " + tableName + " WHERE " + primaryKey + " = ?";
+        PreparedStatement stmt = null;
+        final Map<String, Object> record = new HashMap();
 
-        ResultSet rs = findRecord.executeQuery(findString);
+        try {
+            stmt = conn.prepareStatement(sql);
+            stmt.setObject(1, primaryKeyValue);
+            ResultSet rs = stmt.executeQuery();
+            final ResultSetMetaData metaData = rs.getMetaData();
+            final int fields = metaData.getColumnCount();
 
-        List<Map<String, Object>> records = new ArrayList<>();
-        ResultSetMetaData rsmd = rs.getMetaData();
-        int colCount = rsmd.getColumnCount();
-        while (rs.next()) {
-            Map<String, Object> record = new LinkedHashMap<>();
-            for (int i = 0; i < colCount; i++) {
-                String colName = rsmd.getColumnName(i + 1);
-                Object colData = rs.getObject(colName);
-                record.put(colName, colData);
+            if (rs.next()) {
+                for (int i = 1; i <= fields; i++) {
+                    record.put(metaData.getColumnName(i), rs.getObject(i));
+                }
             }
-            records.add(record);
 
+        } catch (SQLException e) {
+
+        } finally {
+            try {
+                stmt.close();
+                conn.close();
+            } catch (SQLException e) {
+
+            }
         }
-        return records;
+
+        return record;
 
     }
 
@@ -138,18 +193,17 @@ public class MySqlDbStrategy implements DbStrategy {
         return records;
     }
 
-    public static void main(String[] args) throws Exception {
-        MySqlDbStrategy db = new MySqlDbStrategy();
-        db.openConnection("com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/book?useSSL=false",
-                "root", "admin");
-        //find = db.findById("author",1);
-        //List<Map<String, Object>> records = db.findAllRecords("author", 500);
-        List<String> colNames = Arrays.asList("author_name", "date_added");
-        List<Object> colValues = new ArrayList<>();
-        colValues.add("Jim Lombardo");
-        colValues.add(new Date());
-        db.createRecord("author", colNames, colValues);
-        db.closeConnection();
-    }
-
+//    public static void main(String[] args) throws Exception {
+//        DbStrategy db = new MySqlDbStrategy();
+//        db.openConnection("com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/book?useSSL=false",
+//                "root", "admin");
+//        //find = db.findById("author",1);
+//        //List<Map<String, Object>> records = db.findAllRecords("author", 500);
+//        List<String> colNames = Arrays.asList("author_name", "date_added");
+//        List<Object> colValues = new ArrayList<>();
+//        colValues.add("Nisha Stokes");
+//        colValues.add(new Date());
+//        db.updateRecord("author", colNames, colValues, "author_id", 5);
+//        db.closeConnection();
+//    }
 }

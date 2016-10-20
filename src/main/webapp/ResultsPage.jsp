@@ -21,23 +21,36 @@
     <body>
         <div class="container">
             <h1>Authors</h1>
+
             <center>
-            <table class="table-striped table-hover table-condensed">
-                <c:forEach var="item" items="${Authors}">
-                    <tr>
+                
+                <form name="listForm" method="POST" action="AuthorController">
+                    <input type="submit" value="Add" name="submit" />
+                    <input type ="submit" value="Update" name ="submit" />&nbsp;
+                    <input type ="submit" value="Delete" name ="submit" />
+
+                    <table border ="1"class=" table-hover table-condensed">
+
                         <th>Name</th>
                         <th>Author ID</th>
                         <th>Date Added</th>
-                    </tr>
-                    <tr>
-                        <td>${item.authorName}</td>
-                        <td>${item.authorId}</td>
-                        <td>${item.dateAdded}</td>
+                        <th>Picture</th>
 
-                    </tr>
-                </c:forEach>
-            </table>
+                        <c:forEach var="item" items="${authors}">
+                            <tr>
+                                <td><input type="checkbox" name="authorId" value="${item.authorId}"></td> 
+                                <td>${item.authorName}</td>
+                                <td>${item.dateAdded}</td>
+                                <td><img src ="images\Snake.jpg"></td>
+
+                            </tr>
+                        </c:forEach>
+
+                    </table>
+
+
             </center>
+
             <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
         </div>
     </body>
