@@ -19,12 +19,16 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 
 /**
  *
@@ -41,6 +45,8 @@ public class AuthorController extends HttpServlet {
     private String url;
     private String userName;
     private String password;
+    
+    private String dbJndiName;
 
     //private String webmasterEmail;
     @Inject
@@ -105,6 +111,7 @@ public class AuthorController extends HttpServlet {
                     service.createRecord(authorName);
                     refreshList(request, service);
                     destination = RESULTS_PAGE;
+                    
                     break;
                 default:
                     // must be asking to see list
@@ -142,10 +149,20 @@ public class AuthorController extends HttpServlet {
         userName = getServletContext().getInitParameter("db.userName");
         password = getServletContext().getInitParameter("db.password");
         // webmasterEmail = getServletContext().getInitParameter("webmaster-email");
+        dbJndiName = getServletContext().getInitParameter("db.jndi.name");
     }
 
-    private void configDbConnection() {
+    private void configDbConnection() throws NamingException, SQLException {
+//        service.getDao().initDao(driverClass, url, userName, password);
+     
+    if(dbJndiName == null){
         service.getDao().initDao(driverClass, url, userName, password);
+    }else{
+        Context ctx = new InitialContext();
+        DataSource ds = (DataSource)ctx.lookup(dbJndiName);
+        service.getDao().initDao(ds);
+    }
+        
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

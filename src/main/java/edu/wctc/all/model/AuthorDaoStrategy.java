@@ -7,6 +7,7 @@ package edu.wctc.all.model;
 
 import java.sql.SQLException;
 import java.util.List;
+import javax.sql.DataSource;
 
 /**
  *
@@ -17,13 +18,14 @@ public interface AuthorDaoStrategy {
     List<Author> getAuthorList() throws ClassNotFoundException, SQLException;
 
     void initDao(String driverClass, String Url, String Password, String userName);
-    
-    void updateAuthor(List<String> columnNames, List<Object> columnValues,Object whereValue ) throws Exception;
-    
-    void deleteAuthorById(String id) throws Exception;
-    
-    void createRecord(List<Object> columnValues) throws Exception;
-    
-    Author findAuthorById(Integer authorId)throws Exception;
 
+    void updateAuthor(List<String> columnNames, List<Object> columnValues, Object whereValue) throws Exception;
+
+    void deleteAuthorById(String id) throws Exception;
+
+    void createRecord(List<Object> columnValues) throws Exception;
+
+    Author findAuthorById(Integer authorId) throws Exception;
+
+    void initDao(DataSource ds) throws SQLException;
 }

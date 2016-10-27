@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 import javax.enterprise.context.Dependent;
+import javax.sql.DataSource;
 
 /**
  *
@@ -32,6 +33,10 @@ import javax.enterprise.context.Dependent;
 public class MySqlDbStrategy implements DbStrategy, Serializable {
 
     private Connection conn;
+
+    public final void openConnection(DataSource ds) throws SQLException {
+        conn = ds.getConnection();
+    }
 
     @Override
     public void openConnection(String driverClass, String url, String userName, String password)
