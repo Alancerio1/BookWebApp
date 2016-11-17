@@ -31,17 +31,15 @@
 
                     <table border ="1"class=" table-hover table-condensed">
 
-                        <th>Name</th>
                         <th>Author ID</th>
+                        <th>Name</th>
                         <th>Date Added</th>
-                        <th>Picture</th>
 
                         <c:forEach var="item" items="${authors}">
                             <tr>
                                 <td><input type="checkbox" name="authorId" value="${item.authorId}"></td> 
                                 <td>${item.authorName}</td>
                                 <td>${item.dateAdded}</td>
-                                <td><img src ="images\Snake.jpg"></td>
 
                             </tr>
                         </c:forEach>

@@ -27,16 +27,6 @@
 
         </form>
 
-        <script>
-            function validateData() {
-
-                var Data = document.forms["myForm"]["submit"].value;
-                if (Data == null || Data == "") {
-                    alert("Name must be filled out");
-                    return false;
-                }         
-
-            }
-        </script>
+      
     </body>
 </html>

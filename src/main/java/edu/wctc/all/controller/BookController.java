@@ -5,49 +5,37 @@
  */
 package edu.wctc.all.controller;
 
-import com.mysql.fabric.xmlrpc.base.Data;
 import edu.wctc.all.ejb.AuthorFacade;
+import edu.wctc.all.ejb.BookFacade;
 import edu.wctc.all.model.Author;
-//import edu.wctc.all.model.AuthorDao;
-//import edu.wctc.all.model.AuthorDaoStrategy;
-//import edu.wctc.all.model.AuthorService;
-//import edu.wctc.all.model.DbStrategy;
-//import edu.wctc.all.model.MySqlDbStrategy;
+import edu.wctc.all.model.Book;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.inject.Inject;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.sql.DataSource;
 
 /**
  *
  * @author alancerio18
  */
-@WebServlet(name = "AuthorController", urlPatterns = {"/AuthorController"})
-public class AuthorController extends HttpServlet {
+@WebServlet(name = "bookController", urlPatterns = {"/BookController"})
+public class BookController extends HttpServlet {
 
-    private final String RESULTS_PAGE = "/ResultsPage.jsp";
-    private final String ADD_PAGE = "/Add.jsp";
-    private final String UPDATE_PAGE = "/Update.jsp";
-//    private DbStrategy db;
+    private final String RESULTS_PAGE = "/BookResultPage.jsp";
+    private final String ADD_PAGE = "/BookAdd.jsp";
+    private final String UPDATE_PAGE = "/BookUpdate.jsp";
 
-    private String dbJndiName;
     @Inject
-    private AuthorFacade service;
+    private BookFacade service;
+    @Inject
+    private AuthorFacade authService;
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -59,78 +47,88 @@ public class AuthorController extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException, Exception {
+            throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
+
         String destination = RESULTS_PAGE;
-//        String destination = LIST_PAGE;
-//        String action = request.getParameter(ACTION_PARAM);
+
         try {
 
             String button = request.getParameter("submit");
             if (button == null) {
                 button = "";
             }
-            String authorName = null;
+            String bookName = null;
 
             switch (button) {
                 case "Delete":
-                    String[] ids = request.getParameterValues("authorId");
+                    String[] ids = request.getParameterValues("bookId");
                     if (ids != null) {
                         for (String id : ids) {
-                            Author author = service.find(new Integer(id));
-                            service.remove(author);
+                            Book book = service.find(new Integer(id));
+                            service.remove(book);
                         }
                         refreshList(request, service);
+                        refreshAuthorList(request, authService);
+
                     }
                     break;
                 case "Update":
-                    String[] id = request.getParameterValues("authorId");
+                    String[] id = request.getParameterValues("bookId");
                     Integer a = Integer.parseInt(id[0]);
-                    Author author = service.find(a);
-                    // Author author = service.getAuthorById(a.toString());
-                    request.setAttribute("item", author);
+                    Book book = service.find(a);
+                    request.setAttribute("item", book);
+                    refreshList(request, service);
+
                     destination = UPDATE_PAGE;
 
                     break;
 
                 case "Updated":
-                    String authorId = request.getParameter("id");
-                    authorName = request.getParameter("Added");
-                    
-       
-                    Author updateAuthor = service.find(new Integer(authorId));
-                    updateAuthor.setAuthorName(authorName);
-                    
-                    service.edit(updateAuthor);
+                    String bookId = request.getParameter("bookId");
+                    bookName = request.getParameter("bookAdded");
+
+                    Book updateBook = service.find(new Integer(bookId));
+                    updateBook.setTitle(bookName);
+
+                    service.edit(updateBook);
                     refreshList(request, service);
+                    refreshAuthorList(request, authService);
+
                     destination = RESULTS_PAGE;
                     break;
                 case "Add":
                     destination = ADD_PAGE;
+
+                    List<Author> authors = authService.findAll();
+                    request.setAttribute("authors", authors);
+
                     break;
 
                 case "Create":
-                    authorName = request.getParameter("Add");
-                    Author createAuthor = new Author();
-                    createAuthor.setAuthorName(authorName);
-                    createAuthor.setDateAdded(new Date());
-                    service.create(createAuthor);
-
-                    //  service.createRecord(authorName);
+                    bookName = request.getParameter("bookAdd");
+                    String bookIsbn = request.getParameter("bookIsbn");
+                    String authorName = request.getParameter("bookAuthor");
+                    
+                    int isbn = Integer.parseInt(bookIsbn);
+                    
+                    Book createBook = new Book();
+                    createBook.setTitle(bookName);
+                    createBook.setIsbn(isbn + "");
+                    
+                    service.create(createBook);
                     refreshList(request, service);
+                    refreshAuthorList(request, authService);
+
                     destination = RESULTS_PAGE;
 
                     break;
                 default:
-                    // must be asking to see list
                     refreshList(request, service);
+                    refreshAuthorList(request, authService);
                     destination = RESULTS_PAGE;
 
             }
-//            else if (updateBtn != null && updateBtn.equals("Update")) {
-//                String[] ids = request.getParameterValues("authorId");
-//
-//            } 
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -141,9 +139,15 @@ public class AuthorController extends HttpServlet {
         view.forward(request, response);
     }
 
-    private void refreshList(HttpServletRequest request, AuthorFacade service) throws Exception {
-        List<Author> authors = service.findAll();
+    private void refreshList(HttpServletRequest request, BookFacade service) throws Exception {
+        List<Book> books = service.findAll();
+        request.setAttribute("books", books);
+    }
+
+    private void refreshAuthorList(HttpServletRequest request, AuthorFacade authService) throws Exception {
+        List<Author> authors = authService.findAll();
         request.setAttribute("authors", authors);
+
     }
 
     @Override
@@ -163,13 +167,7 @@ public class AuthorController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        try {
-            processRequest(request, response);
-
-        } catch (Exception ex) {
-            Logger.getLogger(AuthorController.class
-                    .getName()).log(Level.SEVERE, null, ex);
-        }
+        processRequest(request, response);
     }
 
     /**
@@ -183,13 +181,7 @@ public class AuthorController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        try {
-            processRequest(request, response);
-
-        } catch (Exception ex) {
-            Logger.getLogger(AuthorController.class
-                    .getName()).log(Level.SEVERE, null, ex);
-        }
+        processRequest(request, response);
     }
 
     /**
