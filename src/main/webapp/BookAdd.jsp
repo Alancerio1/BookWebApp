@@ -33,10 +33,10 @@
                 <c:when test="${authors != null}">
                     Book Author:
 
-            <select>
+            <select name="bookAuthor">
                 <c:forEach var="author" items="${authors}">
 
-                    <option value="${author.authorId}" name="bookAuthor" id="author">${author.authorName} </option>
+                    <option value="${author.authorId}" id="author">${author.authorName} </option>
                 </c:forEach>
             </select>
                 </c:when>

@@ -5,9 +5,9 @@
  */
 package edu.wctc.all.controller;
 
-import com.mysql.fabric.xmlrpc.base.Data;
-import edu.wctc.all.ejb.AuthorFacade;
+//import com.mysql.fabric.xmlrpc.base.Data;
 import edu.wctc.all.model.Author;
+import edu.wctc.all.service.AuthorService;
 //import edu.wctc.all.model.AuthorDao;
 //import edu.wctc.all.model.AuthorDaoStrategy;
 //import edu.wctc.all.model.AuthorService;
@@ -26,12 +26,15 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
 /**
  *
@@ -46,8 +49,9 @@ public class AuthorController extends HttpServlet {
 //    private DbStrategy db;
 
     private String dbJndiName;
-    @Inject
-    private AuthorFacade service;
+    
+    
+    private AuthorService service;
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -77,7 +81,7 @@ public class AuthorController extends HttpServlet {
                     String[] ids = request.getParameterValues("authorId");
                     if (ids != null) {
                         for (String id : ids) {
-                            Author author = service.find(new Integer(id));
+                            Author author = service.findById(id.toString());
                             service.remove(author);
                         }
                         refreshList(request, service);
@@ -86,7 +90,7 @@ public class AuthorController extends HttpServlet {
                 case "Update":
                     String[] id = request.getParameterValues("authorId");
                     Integer a = Integer.parseInt(id[0]);
-                    Author author = service.find(a);
+                    Author author = service.findByIdAndFetchBooksEagerly(a.toString());
                     // Author author = service.getAuthorById(a.toString());
                     request.setAttribute("item", author);
                     destination = UPDATE_PAGE;
@@ -98,7 +102,7 @@ public class AuthorController extends HttpServlet {
                     authorName = request.getParameter("Added");
                     
        
-                    Author updateAuthor = service.find(new Integer(authorId));
+                    Author updateAuthor = service.findByIdAndFetchBooksEagerly(authorId.toString());
                     updateAuthor.setAuthorName(authorName);
                     
                     service.edit(updateAuthor);
@@ -114,7 +118,7 @@ public class AuthorController extends HttpServlet {
                     Author createAuthor = new Author();
                     createAuthor.setAuthorName(authorName);
                     createAuthor.setDateAdded(new Date());
-                    service.create(createAuthor);
+                    service.edit(createAuthor);
 
                     //  service.createRecord(authorName);
                     refreshList(request, service);
@@ -141,14 +145,17 @@ public class AuthorController extends HttpServlet {
         view.forward(request, response);
     }
 
-    private void refreshList(HttpServletRequest request, AuthorFacade service) throws Exception {
+    private void refreshList(HttpServletRequest request, AuthorService service) throws Exception {
         List<Author> authors = service.findAll();
         request.setAttribute("authors", authors);
     }
 
     @Override
     public void init() throws ServletException {
-
+         ServletContext sctx = getServletContext();
+        WebApplicationContext ctx
+                = WebApplicationContextUtils.getWebApplicationContext(sctx);
+        service = (AuthorService) ctx.getBean("authorService");
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

@@ -5,21 +5,25 @@
  */
 package edu.wctc.all.controller;
 
-import edu.wctc.all.ejb.AuthorFacade;
-import edu.wctc.all.ejb.BookFacade;
+
 import edu.wctc.all.model.Author;
 import edu.wctc.all.model.Book;
+import edu.wctc.all.service.AuthorService;
+import edu.wctc.all.service.BookService;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.List;
 import javax.inject.Inject;
 import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
 /**
  *
@@ -32,10 +36,8 @@ public class BookController extends HttpServlet {
     private final String ADD_PAGE = "/BookAdd.jsp";
     private final String UPDATE_PAGE = "/BookUpdate.jsp";
 
-    @Inject
-    private BookFacade service;
-    @Inject
-    private AuthorFacade authService;
+    private BookService service;
+    private AuthorService authService;
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -65,7 +67,7 @@ public class BookController extends HttpServlet {
                     String[] ids = request.getParameterValues("bookId");
                     if (ids != null) {
                         for (String id : ids) {
-                            Book book = service.find(new Integer(id));
+                            Book book = service.findById(id);
                             service.remove(book);
                         }
                         refreshList(request, service);
@@ -76,10 +78,16 @@ public class BookController extends HttpServlet {
                 case "Update":
                     String[] id = request.getParameterValues("bookId");
                     Integer a = Integer.parseInt(id[0]);
-                    Book book = service.find(a);
+                    Book book = service.findById(a.toString());
                     request.setAttribute("item", book);
+                    
                     refreshList(request, service);
-
+                    
+                    List<Author> updateAuthors = authService.findAll();
+                    request.setAttribute("authors", updateAuthors);
+                    
+                    
+                    
                     destination = UPDATE_PAGE;
 
                     break;
@@ -87,10 +95,16 @@ public class BookController extends HttpServlet {
                 case "Updated":
                     String bookId = request.getParameter("bookId");
                     bookName = request.getParameter("bookAdded");
-
-                    Book updateBook = service.find(new Integer(bookId));
+                    
+                    String updatedAuthorId = request.getParameter("bookAuthor");
+                     
+                      
+                    Book updateBook = service.findById(bookId.toString());
+                    Author updatedAuthor = authService.findById(updatedAuthorId);
                     updateBook.setTitle(bookName);
-
+                    
+                    updateBook.setAuthorId(updatedAuthor);
+                    
                     service.edit(updateBook);
                     refreshList(request, service);
                     refreshAuthorList(request, authService);
@@ -108,15 +122,17 @@ public class BookController extends HttpServlet {
                 case "Create":
                     bookName = request.getParameter("bookAdd");
                     String bookIsbn = request.getParameter("bookIsbn");
-                    String authorName = request.getParameter("bookAuthor");
+                    String authorId = request.getParameter("bookAuthor");
                     
-                    int isbn = Integer.parseInt(bookIsbn);
                     
                     Book createBook = new Book();
-                    createBook.setTitle(bookName);
-                    createBook.setIsbn(isbn + "");
                     
-                    service.create(createBook);
+                    Author author = authService.findById(authorId);
+                    createBook.setAuthorId(author);
+                    createBook.setTitle(bookName);
+                    createBook.setIsbn(bookIsbn);
+                    
+                    service.edit(createBook);
                     refreshList(request, service);
                     refreshAuthorList(request, authService);
 
@@ -139,12 +155,12 @@ public class BookController extends HttpServlet {
         view.forward(request, response);
     }
 
-    private void refreshList(HttpServletRequest request, BookFacade service) throws Exception {
+    private void refreshList(HttpServletRequest request, BookService service) throws Exception {
         List<Book> books = service.findAll();
         request.setAttribute("books", books);
     }
 
-    private void refreshAuthorList(HttpServletRequest request, AuthorFacade authService) throws Exception {
+    private void refreshAuthorList(HttpServletRequest request, AuthorService authService) throws Exception {
         List<Author> authors = authService.findAll();
         request.setAttribute("authors", authors);
 
@@ -152,7 +168,11 @@ public class BookController extends HttpServlet {
 
     @Override
     public void init() throws ServletException {
-
+         ServletContext sctx = getServletContext();
+        WebApplicationContext ctx
+                = WebApplicationContextUtils.getWebApplicationContext(sctx);
+        authService = (AuthorService) ctx.getBean("authorService");
+        service = (BookService) ctx.getBean("bookService");
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
